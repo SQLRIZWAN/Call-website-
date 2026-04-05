@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpoofCall Pro - Caller ID Spoofing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root {
+            --primary: #00ff88;
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+        }
+        .call-btn {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .history-row {
+            transition: all 0.3s ease;
+        }
+        .history-row:hover {
+            background-color: rgba(0, 255, 136, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-white min-h-screen">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center px-6">
+        <div class="w-full max-w-md glass border border-zinc-700 rounded-3xl p-10">
+            <div class="text-center mb-10">
+                <div class="w-16 h-16 bg-emerald-500 rounded-3xl flex items-center justify-center text-3xl font-bold mx-auto mb-4">👻</div>
+                <h1 class="text-4xl font-bold">SpoofCall <span class="text-emerald-400">Pro</span></h1>
+                <p class="text-zinc-400 mt-2">Login to continue</p>
+            </div>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-emerald-400 text-sm font-medium mb-2">YOUR NAME</label>
+                    <input id="login-name" type="text"
+                           class="w-full bg-zinc-900 border border-zinc-700 focus:border-emerald-400 rounded-3xl px-6 py-4 text-lg outline-none"
+                           placeholder="Enter your name">
+                </div>
+                <div>
+                    <label class="block text-emerald-400 text-sm font-medium mb-2">PHONE NUMBER</label>
+                    <input id="login-phone" type="tel"
+                           class="w-full bg-zinc-900 border border-zinc-700 focus:border-emerald-400 rounded-3xl px-6 py-4 text-lg outline-none"
+                           placeholder="+91 XXXXX XXXXX">
+                </div>
+                <button onclick="doLogin()"
+                        class="w-full py-5 bg-emerald-500 hover:bg-emerald-600 text-black text-xl font-bold rounded-3xl transition-all active:scale-95">
+                    LOGIN
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP (hidden until login) -->
+    <div id="main-app" class="hidden">
+
+        <!-- Navbar -->
+        <nav class="border-b border-zinc-800 bg-zinc-900 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center text-xl font-bold">👻</div>
+                    <h1 class="text-2xl font-bold tracking-tight">SpoofCall <span class="text-emerald-400">Pro</span></h1>
+                </div>
+
+                <div class="flex items-center gap-8">
+                    <a href="#" onclick="showDashboard()" class="flex items-center gap-2 hover:text-emerald-400 transition-colors">
+                        <i class="fa-solid fa-house"></i>
+                        <span class="font-medium">Dashboard</span>
+                    </a>
+                    <a href="#" onclick="showCallForm()" class="flex items-center gap-2 hover:text-emerald-400 transition-colors">
+                        <i class="fa-solid fa-phone"></i>
+                        <span class="font-medium">Make Spoof Call</span>
+                    </a>
+                    <a href="#" onclick="showHistory()" class="flex items-center gap-2 hover:text-emerald-400 transition-colors">
+                        <i class="fa-solid fa-clock"></i>
+                        <span class="font-medium">History</span>
+                    </a>
+
+                    <div class="flex items-center gap-3">
+                        <div onclick="buyCredits()" class="bg-emerald-500 text-black px-6 py-2 rounded-3xl font-semibold flex items-center gap-2 cursor-pointer hover:bg-emerald-400 transition">
+                            <i class="fa-solid fa-coins"></i>
+                            <span id="balance-display">₹ 0</span>
+                        </div>
+
+                        <div class="flex items-center gap-2 bg-zinc-800 px-4 py-2 rounded-3xl cursor-pointer" onclick="toggleProfile()">
+                            <div id="user-avatar" class="w-8 h-8 bg-zinc-700 rounded-2xl flex items-center justify-center text-sm font-bold">?</div>
+                            <div>
+                                <p id="nav-username" class="text-sm font-medium">User</p>
+                                <p class="text-xs text-emerald-400">Premium User</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- HERO / DASHBOARD SECTION -->
+        <div id="dashboard-section" class="max-w-7xl mx-auto px-6 py-12">
+            <div class="grid grid-cols-12 gap-6">
+                <!-- Welcome Card -->
+                <div class="col-span-12 lg:col-span-8 glass border border-zinc-700 rounded-3xl p-8">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 id="welcome-text" class="text-5xl font-bold mb-2">Welcome back 👋</h2>
+                            <p class="text-xl text-zinc-400">Ready to make your next spoofed call?</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-5 py-2 rounded-3xl text-sm font-medium">
+                                <div class="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+                                ONLINE
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-12 grid grid-cols-3 gap-6">
+                        <div class="text-center">
+                            <p class="text-emerald-400 text-sm font-medium">CREDITS LEFT</p>
+                            <p id="credits-big" class="text-7xl font-bold text-emerald-400 mt-2">0</p>
+                            <p class="text-xs text-zinc-500">₹1 = 1 credit</p>
+                        </div>
+                        <div class="text-center border-l border-r border-zinc-700">
+                            <p class="text-emerald-400 text-sm font-medium">CALLS MADE TODAY</p>
+                            <p id="calls-today" class="text-7xl font-bold mt-2">0</p>
+                            <p class="text-xs text-zinc-500">This session</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-emerald-400 text-sm font-medium">SUCCESS RATE</p>
+                            <p id="success-rate" class="text-7xl font-bold mt-2 text-white">100%</p>
+                            <p class="text-xs text-zinc-500">All time</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="col-span-12 lg:col-span-4 space-y-6">
+                    <button onclick="showCallForm()"
+                            class="w-full h-40 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-3xl flex flex-col items-center justify-center gap-4 text-2xl font-bold call-btn hover:shadow-2xl hover:shadow-emerald-500/50 transition-all">
+                        <i class="fa-solid fa-phone-volume text-5xl"></i>
+                        <span>MAKE SPOOF CALL</span>
+                        <span class="text-base font-medium opacity-75">Takes 8 seconds</span>
+                    </button>
+
+                    <div onclick="buyCredits()" class="glass border border-emerald-500/30 rounded-3xl p-6 flex items-center gap-6 cursor-pointer hover:border-emerald-400">
+                        <i class="fa-solid fa-credit-card text-4xl text-emerald-400"></i>
+                        <div class="flex-1">
+                            <p class="font-semibold text-xl">Buy more credits</p>
+                            <p class="text-zinc-400">Get 5000 credits @ ₹3999 only</p>
+                        </div>
+                        <i class="fa-solid fa-arrow-right text-3xl"></i>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="col-span-12">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-history"></i> Recent Spoof Calls
+                    </h3>
+                    <div id="recent-list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CALL FORM SECTION -->
+        <div id="call-form-section" class="max-w-7xl mx-auto px-6 py-12 hidden">
+            <div class="max-w-2xl mx-auto glass border border-zinc-700 rounded-3xl p-10">
+                <h2 class="text-4xl font-bold text-center mb-8">Initiate Spoof Call</h2>
+
+                <div class="space-y-8">
+                    <!-- Spoof Number -->
+                    <div>
+                        <label class="block text-emerald-400 text-sm font-medium mb-2">SPOOF CALLER ID (Fake Number)</label>
+                        <div class="flex gap-3">
+                            <input id="spoof-number" type="tel"
+                                   class="flex-1 bg-zinc-900 border border-zinc-700 focus:border-emerald-400 rounded-3xl px-6 py-5 text-xl outline-none"
+                                   placeholder="+91 98765 43210">
+                            <button onclick="randomSpoof()"
+                                    class="px-8 bg-zinc-800 hover:bg-zinc-700 rounded-3xl text-emerald-400">
+                                <i class="fa-solid fa-dice"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Target Number -->
+                    <div>
+                        <label class="block text-emerald-400 text-sm font-medium mb-2">TARGET NUMBER</label>
+                        <input id="target-number" type="tel"
+                               class="w-full bg-zinc-900 border border-zinc-700 focus:border-emerald-400 rounded-3xl px-6 py-5 text-xl outline-none"
+                               placeholder="+91 98765 43210">
+                    </div>
+
+                    <!-- Your Callback Number -->
+                    <div>
+                        <label class="block text-emerald-400 text-sm font-medium mb-2">YOUR REAL NUMBER (Callback)</label>
+                        <input id="callback-number" type="tel"
+                               class="w-full bg-zinc-900 border border-zinc-700 focus:border-emerald-400 rounded-3xl px-6 py-5 text-xl outline-none"
+                               placeholder="Your number">
+                    </div>
+
+                    <!-- Duration & Options -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-emerald-400 text-sm font-medium mb-2">CALL DURATION (seconds)</label>
+                            <input id="duration" type="number" value="45"
+                                   class="w-full bg-zinc-900 border border-zinc-700 focus:border-emerald-400 rounded-3xl px-6 py-5 text-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-emerald-400 text-sm font-medium mb-2">VOICE MODIFIER</label>
+                            <select id="voice-mod" class="w-full bg-zinc-900 border border-zinc-700 focus:border-emerald-400 rounded-3xl px-6 py-5 text-xl outline-none">
+                                <option value="">Normal Voice</option>
+                                <option value="male">Deep Male</option>
+                                <option value="female">Female</option>
+                                <option value="robot">Robot</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Call Button -->
+                    <button onclick="simulateCall()"
+                            class="w-full py-8 bg-emerald-500 hover:bg-emerald-600 text-black text-3xl font-bold rounded-3xl flex items-center justify-center gap-4 transition-all active:scale-95">
+                        <i class="fa-solid fa-phone-volume"></i>
+                        <span>START SPOOF CALL</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- HISTORY SECTION -->
+        <div id="history-section" class="max-w-7xl mx-auto px-6 py-12 hidden">
+            <div class="glass border border-zinc-700 rounded-3xl overflow-hidden">
+                <div class="px-8 py-6 border-b border-zinc-700 flex justify-between items-center">
+                    <h2 class="text-3xl font-bold">Call History</h2>
+                    <button onclick="clearHistory()" class="text-red-400 hover:text-red-500 flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-trash"></i> CLEAR ALL
+                    </button>
+                </div>
+                <div id="history-table" class="divide-y divide-zinc-700"></div>
+            </div>
+        </div>
+
+        <!-- Profile Dropdown -->
+        <div id="profile-dropdown" onclick="if(event.target.id === 'profile-dropdown') toggleProfile()"
+             class="hidden fixed inset-0 bg-black/70 z-[100] flex items-start justify-end pt-20 pr-8">
+            <div class="bg-zinc-900 w-80 rounded-3xl shadow-2xl overflow-hidden">
+                <div class="p-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 bg-zinc-700 rounded-3xl flex items-center justify-center text-4xl">👤</div>
+                        <div>
+                            <p id="profile-name" class="font-bold text-2xl">User</p>
+                            <p id="profile-phone" class="text-emerald-400">• Verified</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-4 pb-4 space-y-1">
+                    <a href="#" onclick="logout()" class="flex items-center gap-4 px-6 py-5 hover:bg-zinc-800 rounded-3xl text-red-400">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span class="font-medium">Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- end main-app -->
+
+    <!-- Toast -->
+    <div id="toast" onclick="this.classList.add('hidden')"
+         class="hidden fixed bottom-6 right-6 bg-emerald-500 text-black px-8 py-4 rounded-3xl shadow-2xl flex items-center gap-3 font-medium">
+        <i class="fa-solid fa-check-circle"></i>
+        <span id="toast-text"></span>
+    </div>
+
+    <script>
+        // ── State ──────────────────────────────────────────────
+        let currentUser = null
+        let credits = 0
+        let callsToday = 0
+        let totalCalls = 0
+        let successCalls = 0
+
+        // ── Login ──────────────────────────────────────────────
+        function doLogin() {
+            const name = document.getElementById('login-name').value.trim()
+            const phone = document.getElementById('login-phone').value.trim()
+
+            if (!name) { showToast("Please enter your name", 2000); return }
+            if (!phone) { showToast("Please enter your phone number", 2000); return }
+
+            currentUser = { name, phone }
+
+            // Load saved data for this user
+            const saved = JSON.parse(localStorage.getItem('userData_' + name) || 'null')
+            if (saved) {
+                credits = saved.credits || 0
+                callsToday = 0 // reset daily
+                totalCalls = saved.totalCalls || 0
+                successCalls = saved.successCalls || 0
+            }
+
+            // Update UI
+            const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+            document.getElementById('user-avatar').textContent = initials
+            document.getElementById('nav-username').textContent = name
+            document.getElementById('welcome-text').textContent = `Welcome back, ${name.split(' ')[0]} 👋`
+            document.getElementById('profile-name').textContent = name
+            document.getElementById('profile-phone').textContent = phone + ' • Verified'
+            document.getElementById('balance-display').textContent = '₹ ' + credits
+            document.getElementById('credits-big').textContent = credits
+            updateStats()
+
+            document.getElementById('login-screen').classList.add('hidden')
+            document.getElementById('main-app').classList.remove('hidden')
+            renderRecent()
+        }
+
+        function saveUserData() {
+            if (!currentUser) return
+            localStorage.setItem('userData_' + currentUser.name, JSON.stringify({
+                credits, totalCalls, successCalls
+            }))
+        }
+
+        function updateStats() {
+            document.getElementById('calls-today').textContent = callsToday
+            const rate = totalCalls > 0 ? Math.round((successCalls / totalCalls) * 100) : 100
+            document.getElementById('success-rate').textContent = rate + '%'
+        }
+
+        // ── Navigation ─────────────────────────────────────────
+        function showDashboard() {
+            document.getElementById('dashboard-section').classList.remove('hidden')
+            document.getElementById('call-form-section').classList.add('hidden')
+            document.getElementById('history-section').classList.add('hidden')
+        }
+
+        function showCallForm() {
+            document.getElementById('dashboard-section').classList.add('hidden')
+            document.getElementById('call-form-section').classList.remove('hidden')
+            document.getElementById('history-section').classList.add('hidden')
+        }
+
+        function showHistory() {
+            document.getElementById('dashboard-section').classList.add('hidden')
+            document.getElementById('call-form-section').classList.add('hidden')
+            document.getElementById('history-section').classList.remove('hidden')
+            renderHistory()
+        }
+
+        function toggleProfile() {
+            document.getElementById('profile-dropdown').classList.toggle('hidden')
+        }
+
+        // ── Credits ────────────────────────────────────────────
+        function buyCredits() {
+            credits += 5000
+            document.getElementById('balance-display').textContent = '₹ ' + credits
+            document.getElementById('credits-big').textContent = credits
+            saveUserData()
+            showToast("5000 credits added!", 2500)
+        }
+
+        // ── Spoof Call ─────────────────────────────────────────
+        function randomSpoof() {
+            const codes = ["+91 98", "+91 70", "+1 415", "+44 20", "+971 50", "+965 9"]
+            const code = codes[Math.floor(Math.random() * codes.length)]
+            const num = Math.floor(10000000 + Math.random() * 90000000)
+            document.getElementById('spoof-number').value = code + num
+            showToast("Random spoof number generated!", 1500)
+        }
+
+        function simulateCall() {
+            const spoof = document.getElementById('spoof-number').value.trim()
+            const target = document.getElementById('target-number').value.trim()
+            const duration = parseInt(document.getElementById('duration').value) || 45
+
+            if (!spoof || !target) {
+                showToast("Please fill spoof & target numbers", 2000)
+                return
+            }
+
+            showToast(`📞 Call initiated! Spoofing ${spoof} → ${target}`, 4000)
+
+            setTimeout(() => {
+                showToast("✅ Call connected", 2000)
+
+                // Update stats
+                callsToday++
+                totalCalls++
+                successCalls++
+                updateStats()
+
+                // Save to history
+                const key = 'spoofHistory_' + (currentUser ? currentUser.name : 'guest')
+                const history = JSON.parse(localStorage.getItem(key) || '[]')
+                history.unshift({
+                    id: Date.now(),
+                    time: new Date().toLocaleTimeString('en-IN'),
+                    spoof,
+                    target,
+                    duration: duration + "s",
+                    status: "✅ Connected"
+                })
+                localStorage.setItem(key, JSON.stringify(history.slice(0, 50)))
+
+                saveUserData()
+                renderRecent()
+
+                setTimeout(() => { showHistory() }, 2500)
+            }, 2800)
+        }
+
+        // ── Render ─────────────────────────────────────────────
+        function getHistory() {
+            const key = 'spoofHistory_' + (currentUser ? currentUser.name : 'guest')
+            return JSON.parse(localStorage.getItem(key) || '[]')
+        }
+
+        function renderRecent() {
+            const container = document.getElementById('recent-list')
+            const history = getHistory().slice(0, 3)
+
+            container.innerHTML = history.length ? history.map(call => `
+                <div class="glass border border-zinc-700 rounded-3xl p-6 history-row">
+                    <div class="flex justify-between text-xs text-zinc-400 mb-3">
+                        <span>${call.time}</span>
+                        <span class="text-emerald-400">${call.duration}</span>
+                    </div>
+                    <div class="font-mono text-lg">${call.spoof} <span class="text-emerald-400">→</span> ${call.target}</div>
+                    <div class="mt-3 text-emerald-400 text-sm font-medium">${call.status}</div>
+                </div>
+            `).join('') : `<p class="text-zinc-500 text-center py-8 col-span-3">No recent calls yet. Make your first spoof call!</p>`
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('history-table')
+            const history = getHistory()
+
+            if (!history.length) {
+                container.innerHTML = `<div class="px-8 py-16 text-center text-zinc-500">No calls yet. Your history will appear here.</div>`
+                return
+            }
+
+            container.innerHTML = history.map(call => `
+                <div class="px-8 py-6 flex items-center gap-6 history-row">
+                    <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-2xl">📞</div>
+                    <div class="flex-1">
+                        <div class="font-mono text-lg">${call.spoof} → ${call.target}</div>
+                        <div class="text-zinc-400 text-sm">${call.time} • ${call.duration}</div>
+                    </div>
+                    <div class="text-emerald-400 font-medium">${call.status}</div>
+                </div>
+            `).join('')
+        }
+
+        function clearHistory() {
+            if (confirm("Clear all call history?")) {
+                const key = 'spoofHistory_' + (currentUser ? currentUser.name : 'guest')
+                localStorage.removeItem(key)
+                renderHistory()
+                renderRecent()
+                showToast("History cleared", 1500)
+            }
+        }
+
+        // ── Toast ──────────────────────────────────────────────
+        function showToast(message, timeout = 2500) {
+            const toast = document.getElementById('toast')
+            document.getElementById('toast-text').innerHTML = message
+            toast.classList.remove('hidden')
+            setTimeout(() => { toast.classList.add('hidden') }, timeout)
+        }
+
+        // ── Logout ─────────────────────────────────────────────
+        function logout() {
+            currentUser = null
+            credits = 0
+            callsToday = 0
+            totalCalls = 0
+            successCalls = 0
+            document.getElementById('main-app').classList.add('hidden')
+            document.getElementById('login-screen').classList.remove('hidden')
+            document.getElementById('profile-dropdown').classList.add('hidden')
+            document.getElementById('login-name').value = ''
+            document.getElementById('login-phone').value = ''
+        }
+
+        // Allow pressing Enter on login inputs
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !document.getElementById('login-screen').classList.contains('hidden')) {
+                doLogin()
+            }
+        })
+    </script>
+</body>
+</html>
